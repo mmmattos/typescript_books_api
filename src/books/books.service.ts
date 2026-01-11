@@ -1,36 +1,32 @@
 import { Injectable } from '@nestjs/common';
-
-export interface Book {
-  id: number;
-  title: string;
-  author: string;
-}
+import { PrismaService } from '../prisma/prisma.service';
+import type { Book } from '@prisma/client';
 
 @Injectable()
 export class BooksService {
-  private books: Book[] = [
-    { id: 1, title: 'Clean Code', author: 'Robert C. Martin' },
-    { id: 2, title: 'The Pragmatic Programmer', author: 'Andrew Hunt' },
-  ];
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
-  private nextId = 3;
-
-  findAll(): Book[] {
-    return this.books;
+  async findAll(): Promise<Book[]> {
+    return this.prisma.book.findMany();
   }
 
-  findOne(id: number): Book | undefined {
-    return this.books.find(book => book.id === id);
+  async findOne(id: number): Promise<Book | null> {
+    return this.prisma.book.findUnique({
+      where: { id },
+    });
   }
 
-  create(title: string, author: string): Book {
-    const book: Book = {
-      id: this.nextId++,
-      title,
-      author,
-    };
-
-    this.books.push(book);
-    return book;
+  async create(
+    title: string,
+    author: string,
+  ): Promise<Book> {
+    return this.prisma.book.create({
+      data: {
+        title,
+        author,
+      },
+    });
   }
 }
